@@ -7,7 +7,6 @@ static/uploads/*
 requirements_actual.txt
 check_labels.py
 fix_model.py
-Traning/
 MEDIA/
 PROJECT_IMG/
 .env
