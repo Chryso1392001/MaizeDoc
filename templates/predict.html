@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MaizeDoc — Diagnosis Report</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --earth: #1c1a14;
+      --soil: #2e2a1e;
+      --moss: #3d5a2e;
+      --leaf: #5a8a3c;
+      --lime: #8cc63f;
+      --mist: #c8e6a0;
+      --cream: #f5f0e8;
+      --gold: #e8b84b;
+      --white: #ffffff;
+      --danger-bg: rgba(220,60,60,0.08);
+      --danger-border: rgba(220,60,60,0.25);
+      --danger-text: #ff7070;
+      --warning-bg: rgba(232,184,75,0.08);
+      --warning-border: rgba(232,184,75,0.25);
+      --warning-text: #e8b84b;
+      --safe-bg: rgba(140,198,63,0.08);
+      --safe-border: rgba(140,198,63,0.25);
+      --safe-text: #8cc63f;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Outfit', sans-serif;
+      background: var(--earth);
+      color: var(--cream);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ── BACKGROUND ── */
+    .bg {
+      position: fixed; inset: 0; z-index: 0;
+      background:
+        radial-gradient(ellipse 100% 60% at 80% -5%, #2a4a1a 0%, transparent 50%),
+        radial-gradient(ellipse 60% 50% at -5% 90%, #1e3510 0%, transparent 50%),
+        var(--earth);
+    }
+
+    .bg-grid {
+      position: fixed; inset: 0; z-index: 0;
+      background-image:
+        linear-gradient(rgba(140,198,63,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(140,198,63,0.03) 1px, transparent 1px);
+      background-size: 48px 48px;
+    }
+
+    /* ── NAV ── */
+    nav {
+      position: relative; z-index: 10;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 24px 56px;
+      border-bottom: 1px solid rgba(140,198,63,0.1);
+    }
+
+    .logo {
+      display: flex; align-items: center; gap: 14px;
+      text-decoration: none;
+    }
+
+    .logo-mark {
+      width: 40px; height: 40px;
+      background: linear-gradient(135deg, var(--lime), var(--moss));
+      border-radius: 11px;
+      display: grid; place-items: center;
+      box-shadow: 0 0 20px rgba(140,198,63,0.25);
+    }
+
+    .logo-mark svg { width: 22px; height: 22px; }
+
+    .logo-text {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.4rem;
+      font-weight: 900;
+      color: var(--white);
+      letter-spacing: -0.02em;
+    }
+
+    .logo-text span { color: var(--lime); }
+
+    .nav-back {
+      display: inline-flex; align-items: center; gap: 8px;
+      text-decoration: none;
+      color: rgba(200,230,160,0.6);
+      font-size: 0.85rem;
+      font-weight: 500;
+      padding: 9px 20px;
+      border-radius: 50px;
+      border: 1px solid rgba(140,198,63,0.15);
+      background: rgba(140,198,63,0.05);
+      transition: all 0.25s ease;
+    }
+
+    .nav-back:hover {
+      color: var(--lime);
+      border-color: rgba(140,198,63,0.4);
+      background: rgba(140,198,63,0.1);
+    }
+
+    .nav-back svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2; }
+
+    /* ── PAGE ── */
+    .page {
+      position: relative; z-index: 5;
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 48px 32px 80px;
+    }
+
+    /* ── HEADER ── */
+    .result-header {
+      text-align: center;
+      margin-bottom: 52px;
+      animation: fadeUp 0.5s ease both;
+    }
+
+    .eyebrow-row {
+      display: flex; align-items: center; justify-content: center; gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .eyebrow {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: rgba(140,198,63,0.08);
+      border: 1px solid rgba(140,198,63,0.2);
+      color: var(--lime);
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 7px 18px;
+      border-radius: 50px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    .result-header h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(2rem, 4vw, 3rem);
+      font-weight: 900;
+      color: var(--white);
+      letter-spacing: -0.03em;
+    }
+
+    .result-header h1 em {
+      font-style: italic;
+      color: var(--lime);
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── MAIN CARD ── */
+    .result-card {
+      display: grid;
+      grid-template-columns: 1fr 1.2fr;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(140,198,63,0.12);
+      border-radius: 28px;
+      overflow: hidden;
+      backdrop-filter: blur(12px);
+      animation: fadeUp 0.5s 0.1s ease both;
+      box-shadow: 0 32px 80px rgba(0,0,0,0.4);
+    }
+
+    /* Image column */
+    .img-col {
+      position: relative;
+      min-height: 440px;
+      overflow: hidden;
+      background: #0a1206;
+    }
+
+    .img-col img {
+      width: 100%; height: 100%;
+      object-fit: cover;
+      display: block;
+      opacity: 0.88;
+      transition: transform 0.5s ease;
+    }
+
+    .img-col:hover img { transform: scale(1.04); }
+
+    .img-overlay {
+      position: absolute; bottom: 0; left: 0; right: 0;
+      background: linear-gradient(0deg, rgba(10,18,6,0.9) 0%, transparent 60%);
+      padding: 28px;
+    }
+
+    .img-tag {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: rgba(200,230,160,0.6);
+      margin-bottom: 6px;
+    }
+
+    .img-tag::before {
+      content: '';
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--lime);
+    }
+
+    .img-filename {
+      font-size: 0.9rem;
+      font-weight: 500;
+      color: var(--white);
+    }
+
+    /* Details column */
+    .details-col {
+      padding: 44px 40px;
+      display: flex;
+      flex-direction: column;
+      gap: 32px;
+    }
+
+    /* Disease block */
+    .section-label {
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: rgba(200,230,160,0.4);
+      margin-bottom: 10px;
+    }
+
+    .disease-name {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: var(--white);
+      line-height: 1.15;
+      margin-bottom: 12px;
+    }
+
+    .severity-badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 6px 16px;
+      border-radius: 50px;
+    }
+
+    .severity-badge::before {
+      content: '';
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: currentColor;
+    }
+
+    .badge-danger  { background: var(--danger-bg);  border: 1px solid var(--danger-border);  color: var(--danger-text); }
+    .badge-warning { background: var(--warning-bg); border: 1px solid var(--warning-border); color: var(--warning-text); }
+    .badge-safe    { background: var(--safe-bg);    border: 1px solid var(--safe-border);    color: var(--safe-text); }
+    .badge-neutral { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: rgba(255,255,255,0.5); }
+
+    /* Divider */
+    .divider {
+      height: 1px;
+      background: linear-gradient(90deg, rgba(140,198,63,0.15), transparent);
+    }
+
+    /* Confidence */
+    .conf-header {
+      display: flex; justify-content: space-between; align-items: baseline;
+      margin-bottom: 12px;
+    }
+
+    .conf-value {
+      font-family: 'Playfair Display', serif;
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--lime);
+    }
+
+    .conf-track {
+      height: 8px;
+      background: rgba(140,198,63,0.1);
+      border-radius: 10px;
+      overflow: hidden;
+      margin-bottom: 8px;
+    }
+
+    .conf-fill {
+      height: 100%;
+      border-radius: 10px;
+      background: linear-gradient(90deg, var(--lime), #5a8a3c);
+      width: 0%;
+      transition: width 1.4s cubic-bezier(0.4,0,0.2,1);
+      box-shadow: 0 0 12px rgba(140,198,63,0.4);
+    }
+
+    .conf-desc {
+      font-size: 0.78rem;
+      color: rgba(200,230,160,0.4);
+    }
+
+    /* Remedy */
+    .remedy-text {
+      font-size: 0.95rem;
+      line-height: 1.8;
+      color: rgba(200,230,160,0.75);
+      font-weight: 300;
+    }
+
+    /* CTA button */
+    .btn-new {
+      display: inline-flex; align-items: center; gap: 10px;
+      text-decoration: none;
+      background: linear-gradient(135deg, var(--lime), var(--leaf));
+      color: var(--earth);
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.95rem;
+      font-weight: 700;
+      padding: 14px 28px;
+      border-radius: 14px;
+      transition: all 0.3s ease;
+      box-shadow: 0 8px 24px rgba(140,198,63,0.2);
+      align-self: flex-start;
+    }
+
+    .btn-new:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 14px 36px rgba(140,198,63,0.35);
+      color: var(--earth);
+    }
+
+    .btn-new svg { width: 16px; height: 16px; }
+
+    /* ── BOTTOM TIPS ── */
+    .tips-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin-top: 32px;
+      animation: fadeUp 0.5s 0.25s ease both;
+    }
+
+    .tip-card {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(140,198,63,0.1);
+      border-radius: 16px;
+      padding: 20px;
+      transition: all 0.3s ease;
+    }
+
+    .tip-card:hover {
+      border-color: rgba(140,198,63,0.25);
+      background: rgba(140,198,63,0.04);
+      transform: translateY(-3px);
+    }
+
+    .tip-icon {
+      font-size: 1.4rem;
+      margin-bottom: 10px;
+    }
+
+    .tip-title {
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--mist);
+      margin-bottom: 6px;
+    }
+
+    .tip-body {
+      font-size: 0.76rem;
+      color: rgba(200,230,160,0.4);
+      line-height: 1.6;
+    }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 768px) {
+      nav { padding: 16px 20px; }
+      .page { padding: 32px 16px 60px; }
+      .result-card { grid-template-columns: 1fr; }
+      .img-col { min-height: 260px; }
+      .details-col { padding: 28px 22px; }
+      .tips-row { grid-template-columns: 1fr; }
+      .result-header h1 { font-size: 1.8rem; }
+      .disease-name { font-size: 1.4rem; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="bg"></div>
+<div class="bg-grid"></div>
+
+<!-- NAV -->
+<nav>
+  <a href="{{ url_for('home') }}" class="logo">
+    <div class="logo-mark">
+      <svg viewBox="0 0 26 26" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M13 2C13 2 5 7 5 14a8 8 0 0 0 16 0C21 7 13 2 13 2Z" fill="white" opacity="0.9"/>
+        <path d="M13 8v12M9 11c2-1.5 6-1.5 8 0" stroke="#3d5a2e" stroke-width="1.8" stroke-linecap="round"/>
+      </svg>
+    </div>
+    <span class="logo-text">Maize<span>Doc</span></span>
+  </a>
+  <a href="{{ url_for('home') }}" class="nav-back">
+    <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+    New Diagnosis
+  </a>
+</nav>
+
+<div class="page">
+
+  <!-- Header -->
+  <div class="result-header">
+    <div class="eyebrow-row">
+      <div class="eyebrow">🔬 Analysis Complete</div>
+    </div>
+    <h1>Your <em>Diagnosis</em> Report</h1>
+  </div>
+
+  <!-- Main card -->
+  <div class="result-card">
+
+    <!-- Image -->
+    <div class="img-col">
+      <img src="{{ user_image }}" alt="Analyzed Maize Leaf">
+      <div class="img-overlay">
+        <div class="img-tag">Analyzed Image</div>
+        <div class="img-filename">Uploaded by you</div>
+      </div>
+    </div>
+
+    <!-- Details -->
+    <div class="details-col">
+
+      <!-- Disease -->
+      <div>
+        <div class="section-label">Detected Condition</div>
+        <div class="disease-name">{{ disease_name }}</div>
+        <span class="severity-badge badge-{{ disease_severity }}">{{ disease_severity }}</span>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- Confidence -->
+      <div>
+        <div class="conf-header">
+          <div class="section-label">Confidence Score</div>
+          <div class="conf-value">{{ accuracy }}%</div>
+        </div>
+        <div class="conf-track">
+          <div class="conf-fill" id="conf-fill"></div>
+        </div>
+        <div class="conf-desc">Higher confidence indicates a more reliable prediction.</div>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- Remedy -->
+      <div>
+        <div class="section-label">Suggested Remedy</div>
+        <div class="remedy-text">{{ cure_recommendation }}</div>
+      </div>
+
+      <!-- CTA -->
+      <a href="{{ url_for('home') }}" class="btn-new">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12l7-7 7 7"/></svg>
+        Analyze Another Plant
+      </a>
+
+    </div>
+  </div>
+
+  <!-- Quick tip cards -->
+  <div class="tips-row">
+    <div class="tip-card">
+      <div class="tip-icon">📸</div>
+      <div class="tip-title">Better Results</div>
+      <div class="tip-body">Take photos in good lighting with the leaf fully in frame for higher accuracy.</div>
+    </div>
+    <div class="tip-card">
+      <div class="tip-icon">🔁</div>
+      <div class="tip-title">Check Multiple Leaves</div>
+      <div class="tip-body">Scan several leaves from the same plant to confirm the diagnosis.</div>
+    </div>
+    <div class="tip-card">
+      <div class="tip-icon">👨‍🌾</div>
+      <div class="tip-title">Consult an Expert</div>
+      <div class="tip-body">For severe infections, contact your local agricultural extension officer.</div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  window.addEventListener('load', () => {
+    const fill = document.getElementById('conf-fill');
+    const val = parseFloat("{{ accuracy }}");
+    setTimeout(() => { fill.style.width = val + '%'; }, 150);
+  });
+</script>
+
+</body>
+</html>

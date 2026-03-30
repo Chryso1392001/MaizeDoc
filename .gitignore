@@ -1,0 +1,14 @@
+venv/
+__pycache__/
+*.pyc
+*.pyo
+maize_disease_detection_new_model.h5
+static/uploads/*
+requirements_actual.txt
+check_labels.py
+fix_model.py
+Traning/
+MEDIA/
+PROJECT_IMG/
+.env
+*.log

@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MaizeDoc — AI Maize Disease Detection</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --earth: #1c1a14;
+      --soil: #2e2a1e;
+      --moss: #3d5a2e;
+      --leaf: #5a8a3c;
+      --lime: #8cc63f;
+      --mist: #c8e6a0;
+      --cream: #f5f0e8;
+      --gold: #e8b84b;
+      --white: #ffffff;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      height: 100%;
+      font-family: 'Outfit', sans-serif;
+      background: var(--earth);
+      color: var(--cream);
+      overflow-x: hidden;
+    }
+
+    /* ── ANIMATED BACKGROUND ── */
+    .bg {
+      position: fixed; inset: 0; z-index: 0;
+      background: radial-gradient(ellipse 120% 80% at 60% -10%, #2a4a1a 0%, transparent 55%),
+                  radial-gradient(ellipse 80% 60% at -10% 80%, #1e3510 0%, transparent 50%),
+                  var(--earth);
+    }
+
+    .bg-grid {
+      position: fixed; inset: 0; z-index: 0;
+      background-image:
+        linear-gradient(rgba(140,198,63,0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(140,198,63,0.04) 1px, transparent 1px);
+      background-size: 48px 48px;
+      animation: gridShift 20s linear infinite;
+    }
+    @keyframes gridShift { to { background-position: 48px 48px; } }
+
+    /* ── LAYOUT ── */
+    .wrapper {
+      position: relative; z-index: 10;
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      grid-template-rows: auto 1fr auto;
+    }
+
+    /* ── NAV ── */
+    nav {
+      grid-column: 1 / -1;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 28px 56px;
+      border-bottom: 1px solid rgba(140,198,63,0.1);
+    }
+
+    .logo {
+      display: flex; align-items: center; gap: 14px;
+      text-decoration: none;
+    }
+
+    .logo-mark {
+      width: 44px; height: 44px;
+      background: linear-gradient(135deg, var(--lime), var(--moss));
+      border-radius: 12px;
+      display: grid; place-items: center;
+      box-shadow: 0 0 24px rgba(140,198,63,0.3);
+    }
+
+    .logo-mark svg { width: 26px; height: 26px; }
+
+    .logo-text {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.6rem;
+      font-weight: 900;
+      color: var(--white);
+      letter-spacing: -0.02em;
+    }
+
+    .logo-text span { color: var(--lime); }
+
+    .nav-pill {
+      background: rgba(140,198,63,0.1);
+      border: 1px solid rgba(140,198,63,0.2);
+      color: var(--mist);
+      font-size: 0.8rem;
+      font-weight: 500;
+      padding: 8px 18px;
+      border-radius: 50px;
+      letter-spacing: 0.05em;
+    }
+
+    /* ── LEFT COLUMN: HERO TEXT + FORM ── */
+    .left-col {
+      grid-column: 1;
+      padding: 60px 56px 60px 56px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 40px;
+    }
+
+    .eyebrow {
+      display: inline-flex; align-items: center; gap: 10px;
+      background: rgba(140,198,63,0.08);
+      border: 1px solid rgba(140,198,63,0.2);
+      color: var(--lime);
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 8px 18px;
+      border-radius: 50px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      width: fit-content;
+      animation: fadeUp 0.6s ease both;
+    }
+
+    .eyebrow::before {
+      content: '';
+      width: 6px; height: 6px;
+      background: var(--lime);
+      border-radius: 50%;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.7); }
+    }
+
+    h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(2.8rem, 4.5vw, 4rem);
+      font-weight: 900;
+      line-height: 1.08;
+      letter-spacing: -0.03em;
+      color: var(--white);
+      animation: fadeUp 0.6s 0.1s ease both;
+    }
+
+    h1 em {
+      font-style: italic;
+      color: var(--lime);
+    }
+
+    .subtitle {
+      font-size: 1.05rem;
+      font-weight: 300;
+      color: rgba(200,230,160,0.7);
+      line-height: 1.7;
+      max-width: 420px;
+      animation: fadeUp 0.6s 0.2s ease both;
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(24px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── UPLOAD CARD ── */
+    .upload-card {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(140,198,63,0.15);
+      border-radius: 24px;
+      padding: 32px;
+      backdrop-filter: blur(12px);
+      animation: fadeUp 0.6s 0.3s ease both;
+    }
+
+    /* Language toggle */
+    .lang-row {
+      display: flex; align-items: center; gap: 12px;
+      margin-bottom: 24px;
+    }
+
+    .lang-label {
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: rgba(200,230,160,0.5);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+
+    .lang-toggle {
+      display: flex;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(140,198,63,0.15);
+      border-radius: 50px;
+      padding: 3px;
+    }
+
+    .lang-toggle input { display: none; }
+
+    .lang-toggle label {
+      padding: 7px 20px;
+      border-radius: 50px;
+      font-size: 0.82rem;
+      font-weight: 500;
+      color: rgba(200,230,160,0.6);
+      cursor: pointer;
+      transition: all 0.25s ease;
+    }
+
+    .lang-toggle input:checked + label {
+      background: var(--lime);
+      color: var(--earth);
+      font-weight: 600;
+    }
+
+    /* Drop zone */
+    .drop-zone {
+      position: relative;
+      border: 2px dashed rgba(140,198,63,0.25);
+      border-radius: 16px;
+      padding: 40px 24px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      background: rgba(140,198,63,0.03);
+      margin-bottom: 20px;
+      overflow: hidden;
+    }
+
+    .drop-zone::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: radial-gradient(ellipse at center, rgba(140,198,63,0.08) 0%, transparent 70%);
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .drop-zone:hover, .drop-zone.active {
+      border-color: var(--lime);
+      background: rgba(140,198,63,0.06);
+    }
+
+    .drop-zone:hover::before, .drop-zone.active::before { opacity: 1; }
+
+    .drop-zone input {
+      position: absolute; inset: 0;
+      opacity: 0; cursor: pointer;
+      width: 100%; height: 100%;
+    }
+
+    .drop-icon {
+      width: 56px; height: 56px;
+      background: rgba(140,198,63,0.12);
+      border-radius: 16px;
+      display: grid; place-items: center;
+      margin: 0 auto 16px;
+      transition: all 0.3s ease;
+    }
+
+    .drop-zone:hover .drop-icon {
+      background: rgba(140,198,63,0.2);
+      transform: scale(1.05);
+    }
+
+    .drop-icon svg { width: 28px; height: 28px; }
+
+    .drop-title {
+      font-size: 0.95rem;
+      font-weight: 500;
+      color: var(--mist);
+      margin-bottom: 6px;
+    }
+
+    .drop-hint {
+      font-size: 0.78rem;
+      color: rgba(200,230,160,0.4);
+    }
+
+    .file-chosen {
+      display: none;
+      font-size: 0.82rem;
+      color: var(--lime);
+      font-weight: 500;
+      margin-top: 10px;
+    }
+
+    /* Submit button */
+    .btn-analyze {
+      width: 100%;
+      padding: 16px;
+      border-radius: 14px;
+      border: none;
+      background: linear-gradient(135deg, var(--lime) 0%, var(--leaf) 100%);
+      color: var(--earth);
+      font-family: 'Outfit', sans-serif;
+      font-size: 1rem;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 8px 32px rgba(140,198,63,0.25);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .btn-analyze::after {
+      content: '';
+      position: absolute; inset: 0;
+      background: linear-gradient(135deg, rgba(255,255,255,0.15), transparent);
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .btn-analyze:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 40px rgba(140,198,63,0.4);
+    }
+
+    .btn-analyze:hover::after { opacity: 1; }
+
+    .btn-analyze:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .error-msg {
+      background: rgba(220,60,60,0.1);
+      border: 1px solid rgba(220,60,60,0.3);
+      color: #ff8080;
+      border-radius: 12px;
+      padding: 12px 18px;
+      font-size: 0.85rem;
+      margin-bottom: 16px;
+    }
+
+    /* ── RIGHT COLUMN: ILLUSTRATION ── */
+    .right-col {
+      grid-column: 2;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 60px 56px 60px 20px;
+      position: relative;
+      animation: fadeUp 0.8s 0.2s ease both;
+    }
+
+    .illustration-wrap {
+      position: relative;
+      width: 100%;
+      max-width: 480px;
+      overflow: visible;
+    }
+
+    /* Glow behind illustration */
+    .illustration-wrap::before {
+      content: '';
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      width: 360px; height: 360px;
+      background: radial-gradient(circle, rgba(140,198,63,0.18) 0%, transparent 70%);
+      border-radius: 50%;
+      pointer-events: none;
+    }
+
+
+    /* ── PHOTO FRAME ── */
+    .photo-frame {
+      position: relative;
+      border-radius: 24px;
+      overflow: hidden;
+      box-shadow: 0 32px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(140,198,63,0.15);
+      width: 100%;
+      aspect-ratio: 3/4;
+    }
+
+    .photo-frame img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      transition: transform 0.6s ease;
+    }
+
+    .photo-frame:hover img { transform: scale(1.03); }
+
+    /* Scan overlay UI */
+    .scan-overlay {
+      position: absolute; inset: 0;
+      pointer-events: none;
+    }
+
+    .corner {
+      position: absolute;
+      width: 24px; height: 24px;
+      border-color: var(--lime);
+      border-style: solid;
+      opacity: 0.8;
+    }
+
+    .corner.tl { top: 20px; left: 20px; border-width: 3px 0 0 3px; border-radius: 4px 0 0 0; }
+    .corner.tr { top: 20px; right: 20px; border-width: 3px 3px 0 0; border-radius: 0 4px 0 0; }
+    .corner.bl { bottom: 20px; left: 20px; border-width: 0 0 3px 3px; border-radius: 0 0 0 4px; }
+    .corner.br { bottom: 20px; right: 20px; border-width: 0 3px 3px 0; border-radius: 0 0 4px 0; }
+
+    .scan-line {
+      position: absolute;
+      left: 20px; right: 20px;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--lime), transparent);
+      box-shadow: 0 0 12px rgba(140,198,63,0.8);
+      animation: scanMove 3s ease-in-out infinite;
+      top: 20px;
+    }
+
+    @keyframes scanMove {
+      0%   { top: 20px; opacity: 0; }
+      10%  { opacity: 1; }
+      90%  { opacity: 1; }
+      100% { top: calc(100% - 20px); opacity: 0; }
+    }
+
+    /* Bottom gradient on photo */
+    .scan-overlay::after {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      height: 40%;
+      background: linear-gradient(0deg, rgba(10,18,6,0.7) 0%, transparent 100%);
+      border-radius: 0 0 24px 24px;
+    }
+
+
+
+    /* Floating stats */
+    .stat-card {
+      position: absolute;
+      background: rgba(20,26,16,0.92);
+      border: 1px solid rgba(140,198,63,0.3);
+      border-radius: 14px;
+      padding: 14px 18px;
+      backdrop-filter: blur(16px);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.5), 0 0 0 1px rgba(140,198,63,0.1);
+      z-index: 20;
+    }
+
+    .stat-card.top-right {
+      top: 8%; right: -24px;
+      animation: float1 4s ease-in-out infinite;
+    }
+
+    .stat-card.bottom-left {
+      bottom: 12%; left: -24px;
+      animation: float2 5s ease-in-out infinite;
+    }
+
+    @keyframes float1 {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-10px); }
+    }
+
+    @keyframes float2 {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(8px); }
+    }
+
+    .stat-value {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--lime);
+    }
+
+    .stat-label {
+      font-size: 0.72rem;
+      color: rgba(200,230,160,0.5);
+      font-weight: 500;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      margin-top: 2px;
+    }
+
+    /* ── FOOTER ── */
+    footer {
+      grid-column: 1 / -1;
+      padding: 20px 56px;
+      border-top: 1px solid rgba(140,198,63,0.08);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .footer-text {
+      font-size: 0.78rem;
+      color: rgba(200,230,160,0.3);
+    }
+
+    .footer-dots {
+      display: flex; gap: 6px;
+    }
+
+    .footer-dots span {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: rgba(140,198,63,0.3);
+    }
+
+    .footer-dots span:nth-child(2) { background: rgba(140,198,63,0.5); }
+    .footer-dots span:nth-child(3) { background: var(--lime); }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 900px) {
+      .wrapper { grid-template-columns: 1fr; }
+      nav { padding: 20px 24px; }
+      .left-col { padding: 40px 24px; }
+      .right-col { display: none; }
+      footer { padding: 16px 24px; }
+      h1 { font-size: 2.4rem; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="bg"></div>
+<div class="bg-grid"></div>
+
+<div class="wrapper">
+
+  <!-- NAV -->
+  <nav>
+    <a href="#" class="logo">
+      <div class="logo-mark">
+        <svg viewBox="0 0 26 26" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M13 2C13 2 5 7 5 14a8 8 0 0 0 16 0C21 7 13 2 13 2Z" fill="white" opacity="0.9"/>
+          <path d="M13 8v12M9 11c2-1.5 6-1.5 8 0" stroke="#3d5a2e" stroke-width="1.8" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <span class="logo-text">Maize<span>Doc</span></span>
+    </a>
+    <div class="nav-pill">AI-Powered · 4 Disease Classes</div>
+  </nav>
+
+  <!-- LEFT COLUMN -->
+  <div class="left-col">
+    <div class="eyebrow">Instant Diagnosis</div>
+
+    <h1>Detect maize<br>disease <em>instantly</em><br>with AI</h1>
+
+    <p class="subtitle">
+      Upload a photo of your maize leaf and get an accurate disease diagnosis in seconds — with treatment recommendations in English or Kinyarwanda.
+    </p>
+
+    <div class="upload-card">
+      {% if error %}
+        <div class="error-msg">{{ error }}</div>
+      {% endif %}
+
+      <form id="upload-form" method="POST" action="{{ url_for('upload_and_predict') }}" enctype="multipart/form-data">
+
+        <!-- Language -->
+        <div class="lang-row">
+          <span class="lang-label">Language</span>
+          <div class="lang-toggle">
+            <input type="radio" name="language" id="lang-en" value="en" checked>
+            <label for="lang-en">English</label>
+            <input type="radio" name="language" id="lang-kin" value="kin">
+            <label for="lang-kin">Kinyarwanda</label>
+          </div>
+        </div>
+
+        <!-- Drop Zone -->
+        <div class="drop-zone" id="drop-zone">
+          <input type="file" name="file" id="file-input" accept="image/*" capture="environment" required>
+          <div class="drop-icon">
+            <svg viewBox="0 0 28 28" fill="none" stroke="#8cc63f" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M14 4v14M9 9l5-5 5 5"/>
+              <path d="M4 20v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2"/>
+            </svg>
+          </div>
+          <div class="drop-title">Tap to upload or take a photo</div>
+          <div class="drop-hint">JPG or PNG · Max 10MB</div>
+          <div class="file-chosen" id="file-chosen"></div>
+        </div>
+
+        <button type="submit" class="btn-analyze" id="submit-btn" disabled>
+          Analyze Plant →
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- RIGHT COLUMN: Real Photo -->
+  <div class="right-col">
+    <div class="illustration-wrap">
+
+      <!-- Floating stat cards -->
+      <div class="stat-card top-right">
+        <div class="stat-value">98%</div>
+        <div class="stat-label">Accuracy</div>
+      </div>
+      <div class="stat-card bottom-left">
+        <div class="stat-value">4</div>
+        <div class="stat-label">Disease Classes</div>
+      </div>
+
+      <!-- Real farmer photo -->
+      <div class="photo-frame">
+        <img src="{{ url_for('static', filename='images/farmer.png') }}" alt="Farmer scanning maize leaf in field">
+        <div class="scan-overlay">
+          <span class="corner tl"></span>
+          <span class="corner tr"></span>
+          <span class="corner bl"></span>
+          <span class="corner br"></span>
+          <div class="scan-line"></div>
+        </div>
+      </div>
+      
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer>
+    <span class="footer-text">MaizeDoc · AI Plant Disease Detection · Rwanda</span>
+    <div class="footer-dots">
+      <span></span><span></span><span></span>
+    </div>
+  </footer>
+
+</div>
+
+<script>
+  const input  = document.getElementById('file-input');
+  const zone   = document.getElementById('drop-zone');
+  const chosen = document.getElementById('file-chosen');
+  const btn    = document.getElementById('submit-btn');
+
+  input.addEventListener('change', () => {
+    if (input.files.length > 0) {
+      chosen.textContent = '📎 ' + input.files[0].name;
+      chosen.style.display = 'block';
+      zone.classList.add('active');
+      btn.disabled = false;
+    }
+  });
+</script>
+
+</body>
+</html>
