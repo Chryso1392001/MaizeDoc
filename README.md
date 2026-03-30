@@ -25,7 +25,7 @@ MaizeDoc is a web application that uses a Convolutional Neural Network (VGG16 Tr
 
 ## 🚀 Live Demo
 
-**[→ Open MaizeDoc](https://maizedoc.onrender.com)**
+**[→ Open MaizeDoc](https://web-production-c09c54.up.railway.app)**
 
 Works on any phone browser — no app install needed.
 
