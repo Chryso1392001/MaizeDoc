@@ -1,28 +1,113 @@
-[![forthebadge](https://forthebadge.com/images/badges/uses-css.svg)](https://forthebadge.com)<br>
-[![forthebadge](https://forthebadge.com/images/badges/uses-html.svg)](https://forthebadge.com)<br>
-[![forthebadge](https://forthebadge.com/images/badges/built-with-love.svg)](https://forthebadge.com)
+# 🌿 MaizeDoc — AI Maize Disease Detection
 
-# CropDiseaseDiag
-This is a complete webapp that uses Flask microframework for plant disease detection.
-This repository aims to detect diseases that occur on the maize plants using Convolutional Neural Network and Transfer Learning. Currently, the model is able to predict major 3 diseases that occur on the leaves of the plant which are Corn grey leaf spot, Northern corn leaf blight, and Common Rust. The model is also able to predict healthily plant also.<br>
+> Instant maize leaf disease diagnosis powered by deep learning. Upload a photo, get a diagnosis in seconds — in English or Kinyarwanda.
 
-## Traning
-Here we use a pre-trained VGG16 network for our disease classification problem. Then this pre-trained VGG16 was trained on our custom dataset. Our dataset mainly consists the images from [PlantVillage Dataset](https://www.kaggle.com/emmarex/plantdisease). Additional images were scraped from google and manual preprocessing was applied to it before adding it to the original dataset.
+![Python](https://img.shields.io/badge/Python-3.10-blue?style=flat-square&logo=python)
+![TensorFlow](https://img.shields.io/badge/TensorFlow-2.16.1-orange?style=flat-square&logo=tensorflow)
+![Flask](https://img.shields.io/badge/Flask-3.1.3-black?style=flat-square&logo=flask)
+![License](https://img.shields.io/badge/License-MIT-green?style=flat-square)
 
-# Demo 
-Here are some demo images of the project.
-<img src= "PROJECT_IMG\IMG_6134.JPG"> 
+---
 
+## 🔍 What It Does
 
-<img src= "PROJECT_IMG\IMG_6135.JPG">
-<img src= "PROJECT_IMG\IMG_6136.JPG">
+MaizeDoc is a web application that uses a Convolutional Neural Network (VGG16 Transfer Learning) to detect diseases on maize plant leaves. Farmers can take a photo of a maize leaf directly from their phone and receive an instant diagnosis with treatment recommendations.
 
-## Compatibility 
-This code was developed on : 
+### Detected Conditions
+| Condition | Severity |
+|---|---|
+| ✅ Healthy | Safe |
+| 🟡 Common Rust | Warning |
+| 🟡 Gray Leaf Spot (Cercospora) | Warning |
+| 🔴 Northern Leaf Blight | Danger |
+
+---
+
+## 🚀 Live Demo
+
+**[→ Open MaizeDoc](https://maizedoc.onrender.com)**
+
+Works on any phone browser — no app install needed.
+
+---
+
+## 🧠 Model
+
+- **Architecture:** VGG16 pre-trained on ImageNet, fine-tuned on a custom maize disease dataset
+- **Dataset:** [PlantVillage Dataset](https://www.kaggle.com/emmarex/plantdisease) + additional scraped images
+- **Classes:** 4 (Healthy, Common Rust, Gray Leaf Spot, Northern Leaf Blight)
+- **Input size:** 224 × 224 px
+- **Languages supported:** English, Kinyarwanda
+
+---
+
+## 🛠 Tech Stack
+
+- **Backend:** Flask 3.1.3, Python 3.10
+- **ML:** TensorFlow 2.16.1, tf-keras 2.16.0
+- **Frontend:** HTML5, CSS3, Vanilla JS
+- **Deployment:** Render (free tier)
+- **Static files:** WhiteNoise
+
+---
+
+## 💻 Run Locally
+
+```bash
+# Clone the repo
+git clone https://github.com/Chryso1392001/MaizeDoc.git
+cd MaizeDoc
+
+# Create and activate virtual environment
+python -m venv venv
+venv\Scripts\activate        # Windows
+# source venv/bin/activate   # Mac/Linux
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Run the app
+python app.py
 ```
-tensorflow==2.0.0
-numpy==1.18.2
-Flask==1.1.2
-Pillow==7.1.1
+
+Then open `http://127.0.0.1:5000` in your browser.
+
+---
+
+## 📁 Project Structure
+
 ```
- ![visitors](https://visitor-badge.glitch.me/badge?page_id=page.https://github.com/R4j4n/Maize-Diseases-Detection)
+MaizeDoc/
+├── app.py                      # Flask application
+├── maize_disease_fixed.h5      # Trained model
+├── requirements.txt
+├── Procfile                    # For Render deployment
+├── runtime.txt
+├── static/
+│   ├── images/
+│   │   └── farmer.png          # Hero image
+│   └── uploads/                # User uploaded images
+└── templates/
+    ├── home.html               # Upload page
+    └── predict.html            # Results page
+```
+
+---
+
+## 🌍 Deployment
+
+Deployed on [Render](https://render.com) free tier.
+
+- **Build Command:** `pip install -r requirements.txt`
+- **Start Command:** `gunicorn app:app`
+- **Runtime:** Python 3.10
+
+---
+
+## 📄 License
+
+MIT License — see [LICENSE](LICENSE) for details.
+
+---
+
+<p align="center">Built with ❤️ for farmers in Rwanda 🇷🇼</p>
