@@ -96,7 +96,7 @@ MaizeDoc/
 
 ## 🌍 Deployment
 
-Deployed on [Render](https://render.com) free tier.
+Deployed on [Railway](https://railway.com) free tier.
 
 - **Build Command:** `pip install -r requirements.txt`
 - **Start Command:** `gunicorn app:app`
